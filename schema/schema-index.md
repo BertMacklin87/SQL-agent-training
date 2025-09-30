@@ -59,10 +59,15 @@ WHERE s.Sta3n = 589;
 
 ## 🎯 **AI Agent Instructions**
 
+### **🚨 CRITICAL RULE: NEVER ASSUME COLUMN NAMES**
+- **ONLY use columns documented in this schema index**
+- **If table not documented here, ASK USER for actual column names**
+- **Do NOT guess or assume column names like 'IssueDateTime', 'QtyNumeric', etc.**
+
 ### **For Schema Lookups:**
 1. Check this index first for existing table documentation
-2. If table exists, reference the detailed schema file
-3. If table missing, offer to create documentation from user-provided schema
+2. If table exists, reference the detailed schema file  
+3. If table missing, STOP and ask user to provide actual column list
 4. Update this index when new tables added
 
 ### **For Relationship Queries:**
