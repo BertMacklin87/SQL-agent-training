@@ -1,0 +1,290 @@
+SSMS 'Truths' for VS Code to follow - V2 (Updated August 2025):
+
+1. always put commas on the left side (e.g. for select statements)
+
+2. when separating different sections of code use the following template
+
+/*----------------------------------------------------------------------
+		insert code description here
+-----------------------------------------------------------------------*/
+
+3. always ask if using cloud database or regular database 
+
+4. for the cloud data base include the following
+## AI Instructions
+
+I need help converting standard SQL Server queries to run efficiently in a cloud-based database environment. Our cloud database has some specific syntax requirements and performance characteristics:
+
+1. The correct database schema format is `VHA.Cdwwork_[Schema].[Table]` (not `CDWWork.[Schema].[Table]`)
+
+2. Performance optimization techniques that work well include:
+   - SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+   - WITH (NOLOCK) hints
+   - Avoiding complex temp table operations
+
+3. Syntax differences to be aware of:
+   - Use CASE WHEN...THEN...ELSE...END instead of IIF() functions
+   - Avoid DROP TABLE IF EXISTS syntax
+   - Be cautious with clustered index creation on temp tables
+   - Some function support might be limited
+   - CTEs may have compatibility issues - prefer inline subqueries
+
+Here's an example of the correct format that works in our cloud environment:
+```sql
+select   
+Sta3n, HealthFactorTypeSID, HealthFactorType,
+case when healthfactortype like 'KC-HEALTH EQUITY VET ID W%' then 1 else 0 end as HE_Category
+FROM VHA.Cdwwork_DIM.HealthFactorType WITH (NOLOCK)
+WHERE HealthFactorType LIKE 'KC-Health Equity%'
+```
+
+Please help convert my query to this format while maintaining the original logic and optimizing for cloud-based execution. In particular, I need help with:
+1. Converting schema references 
+2. Replacing problematic syntax with cloud-compatible alternatives
+3. Adding appropriate performance optimizations
+4. Simplifying complex operations that might not perform well in the cloud
+
+The goal is to maintain the same results while improving execution time from the current baseline.
+
+# SQL Project Tips & Truths for VS Code Copilot - V2
+
+## Cloud CDW Environment Specifics
+- **Schema Format**: Always use `VHA.Cdwwork_[Schema].[Table]` (not `CDWWork.[Schema].[Table]`)
+- **Performance**: Start queries with `SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;`
+- **Table Hints**: Add `WITH (NOLOCK)` to all table references for cloud optimization
+- **Avoid**: `DROP TABLE IF EXISTS` syntax - use alternative approaches
+- **Functions**: Use `CASE WHEN...THEN...ELSE...END` instead of `IIF()` functions
+- **CTEs**: Avoid CTEs in cloud environment - use inline subqueries with proper aliasing instead
+
+## CRITICAL: Cloud CDW Table Name Corrections
+**CORRECT Table Names (Case Sensitive):**
+```sql
+VHA.Cdwwork_Outpat.VDiagnosis           -- NOT PatientDiagnosis
+VHA.Cdwwork_Inpat.InpatientDiagnosis    -- NOT PatientDiagnosis  
+VHA.Cdwwork_SStaff.SStaff               -- Staff table
+VHA.Cdwwork_SPatient.SPatient           -- Patient table
+VHA.Cdwwork_Outpat.Visit                -- Visit table
+VHA.Cdwwork_Dim.Location                -- Location table
+VHA.Cdwwork_Dim.ICD10                   -- ICD codes
+```
+
+## VERIFIED: Cloud CDW Column Name Reference (Schema Validated)
+**Visit Table Columns (VHA.cdwwork_outpat.Visit):**
+```sql
+v.CreatedByStaffSID              -- Column 10 - VERIFIED EXISTS
+v.EncounterCreatedByStaffSID     -- Column 11 - VERIFIED EXISTS  
+v.VisitDateTime                  -- Column 4 - VERIFIED EXISTS
+v.PatientSID                     -- Column 56 - VERIFIED EXISTS
+v.LocationSID                    -- Column 36 - VERIFIED EXISTS
+v.Sta3n                          -- Column 3 - VERIFIED EXISTS
+-- NOTE: PrimaryStaffSID does NOT exist in Visit table
+```
+
+**Staff Table Columns (VHA.cdwwork_sstaff.SStaff):**
+```sql
+staff.StaffSID                   -- Column 1 - VERIFIED EXISTS
+staff.StaffName                  -- Column 4 - VERIFIED EXISTS  
+staff.ProviderClass              -- Column 62 - VERIFIED EXISTS
+staff.Sta3n                      -- Column 3 - VERIFIED EXISTS
+```
+
+**Patient Table Columns (VHA.cdwwork_spatient.SPatient):**
+```sql
+p.PatientSID                     -- Column 1 - VERIFIED EXISTS
+p.PatientSSN                     -- Column 14 - VERIFIED EXISTS
+p.PatientICN                     -- Column 12 - VERIFIED EXISTS
+p.PatientName                    -- Column 4 - VERIFIED EXISTS
+p.BirthDateTime                  -- Column 20 - VERIFIED EXISTS
+p.Gender                         -- Column 34 - VERIFIED EXISTS
+p.Sta3n                          -- Column 3 - VERIFIED EXISTS
+```
+
+**VDiagnosis Table Columns (VHA.cdwwork_outpat.VDiagnosis):**
+```sql
+vd.PatientSID                    -- Column 6 - VERIFIED EXISTS
+vd.ICD10SID                      -- Column 5 - VERIFIED EXISTS
+vd.VisitSID                      -- Column 7 - VERIFIED EXISTS
+vd.Sta3n                         -- Column 3 - VERIFIED EXISTS
+```
+
+**InpatientDiagnosis Table Columns (VHA.cdwwork_inpat.InpatientDiagnosis):**
+```sql
+id.PatientSID                    -- Column 6 - VERIFIED EXISTS
+id.ICD10SID                      -- Column 12 - VERIFIED EXISTS
+id.Sta3n                         -- Column 4 - VERIFIED EXISTS
+```
+
+## MANDATORY: Table Aliasing Requirements
+**Staff Table Pattern (REQUIRED):**
+```sql
+-- ALWAYS alias staff table and reference columns with alias:
+LEFT JOIN VHA.Cdwwork_SStaff.SStaff staff WITH (NOLOCK)
+    ON source_table.CreatedByStaffSID = staff.StaffSID 
+    AND source_table.Sta3n = staff.Sta3n
+
+-- Reference staff columns as:
+staff.StaffName        -- NEVER just StaffName
+staff.ProviderClass    -- NEVER just ProviderClass
+```
+
+## Query Structure Best Practices
+**Use Inline Subqueries Instead of CTEs:**
+```sql
+-- AVOID (CTE - may fail in cloud):
+WITH patient_visits AS (
+    SELECT PatientSID, Sta3n FROM VHA.Cdwwork_Outpat.Visit
+)
+
+-- USE (Inline subquery - cloud compatible):
+INNER JOIN (
+    SELECT 
+        v.PatientSID
+        ,v.Sta3n
+        ,v.VisitDateTime
+        ,v.CreatedByStaffSID
+    FROM VHA.Cdwwork_Outpat.Visit v WITH (NOLOCK)
+    WHERE v.Sta3n = 589
+) recent_visit ON p.PatientSID = recent_visit.PatientSID
+```
+
+## SSMS Formatting Standards
+- **Commas**: Always place commas on the left side (leading commas)
+  ```sql
+  SELECT 
+      Column1
+      ,Column2
+      ,Column3
+  ```
+- **Section Separators**: Use this exact template between code sections:
+  ```sql
+  /*----------------------------------------------------------------------
+  Insert code description here
+  -----------------------------------------------------------------------*/
+  ```
+
+## Filter Precision
+- **Location Filtering**: When filtering by location patterns, add the filter BOTH in the CTE AND in JOIN conditions to prevent unwanted data
+- **STA3N Filtering**: Always specify `AND Sta3n = 589` in EVERY table join, not just the main WHERE clause
+- **NULL Comparisons**: Use `IS NULL` or `IS NOT NULL` (never `= NULL`)
+- **Parentheses**: Group OR conditions properly with parentheses to avoid logic errors
+
+## Performance Optimization
+- **Early Filtering**: Apply filters as early as possible in subqueries to reduce dataset size
+- **Direct Value Lists**: Use direct LocalDrugSID lists in IN clauses instead of temp tables
+- **Specific Columns**: Select specific columns rather than `SELECT *` when possible for large datasets
+
+## Data Accuracy Tips
+- **First-Time Analysis**: Use `ROW_NUMBER() OVER (PARTITION BY...) = 1` for true first occurrences
+- **Date Ranges**: Be explicit about date ranges and use proper CAST functions
+- **Medication Tracking**: Always check for `RxStatus NOT LIKE 'DISCONTINU%'` and `PriorFillDate IS NULL` for new prescriptions
+
+## Cloud CDW Query Development Workflow
+1. **Start with working patterns**: Use successful query templates as foundation
+2. **Validate table names**: Check exact spelling against CDW schema reference documents
+3. **Test column selections**: Validate columns exist in small test queries first
+4. **Use consistent aliasing**: Alias all tables and reference columns properly
+5. **Avoid CTEs**: Convert to inline subqueries with proper JOIN structure
+6. **Schema prefix everything**: Always include `VHA.Cdwwork_[Schema].[Table]`
+
+## Debugging & Validation
+- **Test Incrementally**: Build queries in stages, testing each subquery separately
+- **Check Counts**: Always validate patient counts and date ranges match expectations
+- **Location Verification**: When filtering locations, test with a simple `SELECT DISTINCT LocationName` first
+- **Column Validation**: Use grep_search on CDW reference docs to verify column names before writing queries
+
+## Working Query Templates
+**Diagnosis Information Pattern:**
+```sql
+SELECT DISTINCT
+    pd.PatientSID
+    ,pd.Sta3n
+    ,icd.ICD10Code
+FROM VHA.Cdwwork_Outpat.VDiagnosis pd WITH (NOLOCK)
+    INNER JOIN VHA.Cdwwork_Dim.ICD10 icd WITH (NOLOCK) 
+        ON pd.ICD10SID = icd.ICD10SID
+WHERE pd.Sta3n = 589
+    AND icd.ICD10Code IN ('N40.0', 'N40.1', 'N40.2', 'N40.3')
+UNION
+SELECT DISTINCT
+    pd.PatientSID
+    ,pd.Sta3n
+    ,icd.ICD10Code
+FROM VHA.Cdwwork_Inpat.InpatientDiagnosis pd WITH (NOLOCK)
+    INNER JOIN VHA.Cdwwork_Dim.ICD10 icd WITH (NOLOCK) 
+        ON pd.ICD10SID = icd.ICD10SID
+WHERE pd.Sta3n = 589
+    AND icd.ICD10Code IN ('N40.0', 'N40.1', 'N40.2', 'N40.3')
+```
+
+**Visit with Location Pattern:**
+```sql
+FROM VHA.Cdwwork_Outpat.Visit v WITH (NOLOCK)
+    INNER JOIN VHA.Cdwwork_Dim.Location l WITH (NOLOCK) 
+        ON v.LocationSID = l.LocationSID 
+        AND v.Sta3n = l.Sta3n
+        AND l.Sta3n = 589
+WHERE v.Sta3n = 589
+    AND l.LocationName LIKE 'KC-LINWOOD-PACT PCP%'
+```
+
+## Code Organization
+- **File Naming**: Use descriptive filenames with sequential numbers (01_, 02_, etc.)
+- **Comment Headers**: Include purpose, data sources, and key filters in header comments
+- **Variable Declaration**: Define key constants (STA3N, date ranges, SIDs) at the top
+
+## When Providing Context to Copilot
+- **Specify Environment**: Always mention "cloud CDW" vs "on-premises"
+- **Include Schema Info**: Attach your schema/table reference files
+- **State Filtering Requirements**: Be explicit about STA3N, location, and date filtering needs
+- **Mention Performance**: If query is slow, specify cloud optimization is needed
+- **Reference Working Patterns**: Provide examples of queries that work in your environment
+
+## Common Cloud CDW Gotchas & Error Prevention
+- **"Invalid object name"**: Check exact table name spelling and case sensitivity
+- **"Invalid column name"**: Verify column exists and use proper table alias
+- **CTE syntax errors**: Convert to inline subqueries immediately
+- **Staff column errors**: Always alias staff table and reference with alias prefix
+- **OR Logic**: Without proper parentheses, OR conditions can bypass other filters entirely
+- **Schema Names**: Case sensitivity matters in cloud environment
+- **Date Functions**: Some date functions may behave differently in cloud vs on-premises
+- **Temp Tables**: Avoid complex temp table operations in cloud - use inline subqueries instead
+
+## Best Practices for Copilot Interaction
+- **Provide Sample Data**: Include actual column names and sample values when possible
+- **Be Specific**: "Filter to these exact LocationNames" vs "filter locations"
+- **Include Full Context**: Attach relevant CSV files or table structures
+- **State Expected Output**: Describe what the final result should look like
+- **Share Working Examples**: Include patterns that have executed successfully in your cloud environment
+
+## Error Resolution Patterns
+**When you get column name errors:**
+1. Check table alias is used correctly
+2. Verify column exists in that specific table
+3. Reference working query patterns for correct syntax
+4. Use schema reference documents to validate names
+
+**When you get table name errors:**
+1. Verify exact case-sensitive spelling
+2. Check schema prefix is complete: `VHA.Cdwwork_[Schema].[Table]`
+3. Replace any CTE structure with inline subqueries
+4. Use validated table names from working queries
+
+Information for Kansas City Instutition and CBOCs (community based outpatient clinics)
+Sta3n	DivisionSID	Sta6a	InstitutionName	OfficialVAName	StaPcNamE
+
+589	1347	589GB	BELTON CBOC	BELTON VA CLINIC	KANSAS CITY VAMC
+589	1350	589GZ	CAMERON CBOC	CAMERON CBOC	KANSAS CITY VAMC
+589	2589	589JB	EXCELSIOR SPRINGS CBOC	EXCELSIOR SPRINGS CBOC	KANSAS CITY VAMC
+589	15249	589JF	HONOR VA CLINIC	HONOR VA CLINIC	KANSAS CITY VAMC
+589	15031	589MC	IDES WHITEMAN AFB	IDES WHITEMAN AFB	KANSAS CITY VAMC
+589	15302	589JC	JOHNSON COUNTY VA CLINIC	JOHNSON COUNTY VA CLINIC	KANSAS CITY VAMC
+589	15034	589HK	KANSAS CITY MOC	KANSAS CITY MOC	KANSAS CITY VAMC
+589	1351	589PA	KANSAS CITY	KANSAS CITY PSYCHOSOCIAL RESIDENTIAL REHABILITATION TREATMENT PROGRAM	KANSAS CITY VAMC
+589	2594	589BV	KANSAS CITY VA FACILITY DOM	KANSAS CITY VA FACILITY DOMICILIARY	KANSAS CITY VAMC
+589	1342	589	KANSAS CITY VAMC	KANSAS CITY VAMC	KANSAS CITY VAMC
+589	24137	589JG	LENEXA VA CLINIC	LENEXA VA CLINIC	KANSAS CITY VAMC
+589	1349	589GD	NEVADA CBOC	NEVADA VA CLINIC	KANSAS CITY VAMC
+589	15250	589QA	OVERLAND PARK VA CLINIC	OVERLAND PARK VA CLINIC	KANSAS CITY VAMC
+589	1348	589GC	PAOLA/LOUISBURG CBOC	PAOLA VA CLINIC	KANSAS CITY VAMC
+589	1345	589G1	WARRENSBURG VA CLINIC	WARRENSBURG MO CBOC	KANSAS CITY VAMC
+589	1346	589GA	ZZ WHITEMAN AFB	WHITEMAN AFB COMMUNITY BASED OUTPATIENT CLINIC (589GA)	KANSAS CITY VAMC
