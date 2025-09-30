@@ -6,9 +6,10 @@
 ```
 Please read my SQL knowledge base at github.com/BertMacklin87/SQL-agent-training 
 before helping with this query. Start by reading AI-AGENT-START-HERE.md for 
-navigation, then follow the decision tree to find relevant sections. Also 
-review HIPAA-SAFETY-PROTOCOL.md for data protection requirements and 
-AI-LEARNING-SYSTEM.md for how to save new discoveries.
+navigation, then KANSAS-CITY-DEFAULTS.md for station filtering (ALWAYS use 
+Sta3n = 589 unless specified otherwise). Also review HIPAA-SAFETY-PROTOCOL.md 
+for data protection requirements and AI-LEARNING-SYSTEM.md for how to save 
+new discoveries.
 ```
 
 ### **🤖 For AI Learning Projects:**
@@ -42,13 +43,14 @@ names, or sensitive data. I will make final decisions on data safety.
 
 ## 🎯 **Short Version** (For Quick Use):
 ```
-Read github.com/BertMacklin87/SQL-agent-training (start with AI-AGENT-START-HERE.md) 
-then help with VHA CDW SQL following the documented patterns and safety protocols.
+Read github.com/BertMacklin87/SQL-agent-training (start with AI-AGENT-START-HERE.md 
+and KANSAS-CITY-DEFAULTS.md) then help with VHA CDW SQL. Default to Sta3n = 589 
+for all queries unless specified otherwise.
 ```
 
 ## 📱 **Mobile/Quick Version:**
 ```
-Check github.com/BertMacklin87/SQL-agent-training first for VHA CDW SQL patterns
+Check github.com/BertMacklin87/SQL-agent-training first. Default: Sta3n = 589
 ```
 
 ## 🔧 **Specialized Instructions:**

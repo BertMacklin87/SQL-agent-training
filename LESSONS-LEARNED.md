@@ -20,7 +20,7 @@
 
 ### 3. **Cloud Database Requirements**
 - **Always** use `WITH (NOLOCK)` for read queries
-- **Always** filter by `Sta3n = [station]` 
+- **Default filter**: `Sta3n = 589` (Kansas City VAMC) for optimal performance
 - **Use** temp tables instead of CTEs
 - **Use** `TOP` instead of `LIMIT`
 
@@ -49,7 +49,7 @@ WHERE TABLE_SCHEMA = 'Cdwwork_[Domain]'
 -- Test data access
 SELECT TOP 1 * 
 FROM VHA.Cdwwork_[Domain].[Table] WITH (NOLOCK)
-WHERE Sta3n = [your_station];
+WHERE Sta3n = 589;  -- Kansas City VAMC
 ```
 
 ### Standard VHA CDW Query Structure:
@@ -64,7 +64,7 @@ CREATE TABLE #TempTable ([columns]);
 -- Main query with required patterns
 SELECT [columns]
 FROM VHA.Cdwwork_[Domain].[Table] WITH (NOLOCK)
-WHERE Sta3n = [station] 
+WHERE Sta3n = 589  -- Kansas City VAMC (default assumption)
     AND [DateColumn] >= '[start_date]'
     AND [DateColumn] <= '[end_date]';
 ```

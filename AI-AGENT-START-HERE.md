@@ -38,19 +38,19 @@
 
 **ALWAYS Remember These:**
 - Use `WITH (NOLOCK)` on all read queries
-- Filter by `Sta3n = [station]` for performance
+- **Default filter**: `Sta3n = 589` (Kansas City VAMC) for optimal performance
 - Use `TOP` instead of `LIMIT`
 - Verify column names with schema discovery FIRST
 - Start simple, add complexity incrementally
 
 ## 🏥 Common VHA CDW Tables
 
-| Need | Table | Schema | Key Fields |
-|------|-------|--------|------------|
-| Prescriptions | RxOutPat | Cdwwork_RxOut | PatientSID, ProviderSID, IssueDate |
-| Staff Info | SStaff | Cdwwork_SStaff | StaffSID, PositionTitle, StaffName |
-| Drug Info | LocalDrug | Cdwwork_LocalDrug | LocalDrugSID, VAProductName |
-| Locations | Location | Dim | LocationSID, LocationName |
+| Need | Table | Schema | Key Fields | Standard Filter |
+|------|-------|--------|------------|----------------|
+| Prescriptions | RxOutPat | Cdwwork_RxOut | PatientSID, ProviderSID, IssueDate | Sta3n = 589 |
+| Staff Info | SStaff | Cdwwork_SStaff | StaffSID, PositionTitle, StaffName | Sta3n = 589 |
+| Drug Info | LocalDrug | Cdwwork_LocalDrug | LocalDrugSID, VAProductName | Sta3n = 589 |
+| Locations | Location | Dim | LocationSID, LocationName | Sta3n = 589 |
 
 ## 🎯 Agent Instructions
 
