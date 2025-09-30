@@ -16,8 +16,10 @@
 3. **General patterns**: `/llm-training/conversation-patterns.md`
 
 ### User needs schema exploration:
+- **Schema index**: `/schema/schema-index.md` - Quick table navigation
 - **Discovery toolkit**: `/examples/schema-discovery-queries.sql`
 - **Known mappings**: `/schema/column-name-mappings.md`
+- **Table relationships**: `/schema/relationships/` - Join patterns by domain
 
 ## 📊 Repository Contents Priority
 

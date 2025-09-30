@@ -62,6 +62,13 @@ log_development_process(f"{project_name}/development-log.md")
 
 ### For Schema/Column Discoveries:
 ```python
+# When user provides complete table schema
+if complete_table_schema_provided:
+    create_table_schema_file(f"/schema/table-schemas/{table_name}.md")
+    update_schema_index(table_name, domain, key_columns)
+    update_domain_relationships(domain, new_join_patterns)
+    request_approval("New table added to schema repository")
+
 # When finding new VHA CDW patterns
 if new_schema_pattern_discovered:
     archive_current_mappings()

@@ -27,10 +27,12 @@ I have an automated learning system for SQL development. Please:
 ```
 Please read my VHA CDW knowledge base at github.com/BertMacklin87/SQL-agent-training
 Focus on:
-- /examples/schema-discovery-queries.sql for systematic table exploration
-- /schema/column-name-mappings.md for known VHA CDW column names
-- /llm-training/sql-best-practices.md for cloud database requirements
-Use the proven schema discovery approach before building any complex queries.
+- /schema/schema-index.md for existing table documentation
+- /schema/relationships/ for proven join patterns by domain
+- /examples/schema-discovery-queries.sql for exploring new tables
+- /schema/SCHEMA-ENTRY-TEMPLATE.md for adding new table schemas
+If I provide complete table column list, create structured documentation 
+per the template and ask approval before updating main files.
 ```
 
 ### **🚨 For HIPAA-Sensitive Work:**
