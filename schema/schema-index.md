@@ -59,10 +59,39 @@ WHERE s.Sta3n = 589;
 
 ## 🎯 **AI Agent Instructions**
 
-### **🚨 CRITICAL RULE: NEVER ASSUME COLUMN NAMES**
-- **ONLY use columns documented in this schema index**
-- **If table not documented here, ASK USER for actual column names**
-- **Do NOT guess or assume column names like 'IssueDateTime', 'QtyNumeric', etc.**
+### **🚨 CRITICAL RULES FOR VHA CDW QUERIES**
+
+#### **1. NEVER ASSUME COLUMN NAMES**
+- **ONLY use columns documented in this schema index or user-provided lists**
+- **If table not documented here, STOP and ASK USER for actual column names**
+- **Do NOT guess column names like 'OrderText', 'DialogParentFileName', 'IssueDateTime', 'QtyNumeric'**
+- **When in doubt, ask user to run: `SELECT TOP 1 * FROM [TableName] WHERE Sta3n = 589`**
+
+#### **2. VERIFY ALL COLUMNS BEFORE WRITING SQL**
+- **Cross-check every column against documented schema**
+- **If using new table, ask user: "Can you provide the column names for [TableName]?"**
+- **Test queries with sample data first if uncertain**
+
+#### **3. UNDERSTAND THE CLINICAL CONTEXT**
+- **Injectable medications**: Usually clinic-administered, not inpatient BCMA
+- **Outpatient vs Inpatient**: Different systems document differently
+- **Ask clarifying questions**: "Is this inpatient BCMA or outpatient clinic administration?"
+
+### **💊 MEDICATION QUERY WORKFLOW - ALWAYS GET DRUGSIDS FIRST**
+When user asks for medication analysis:
+1. **FIRST**: Get LocalDrugSIDs for the specific medications using LocalDrug table
+2. **Use this pattern**:
+```sql
+-- Step 1: Get LocalDrugSIDs for specific medications
+SELECT ld.LocalDrugSID, ld.LocalDrugNameWithDose
+FROM VHA.CDWWork_Dim.LocalDrug ld WITH (NOLOCK)  
+WHERE ld.Sta3n = 589
+    AND ld.VAClassification = '[DrugClass]'
+    AND (ld.LocalDrugNameWithDose LIKE '%[DrugName]%')
+    AND [FilterCriteria];
+```
+3. **THEN**: Use those LocalDrugSIDs in prescription queries (RxOutPat, etc.)
+4. **Never assume drug names** - always filter LocalDrug table first
 
 ### **For Schema Lookups:**
 1. Check this index first for existing table documentation

@@ -11,9 +11,16 @@ Please read my VHA CDW knowledge base at github.com/BertMacklin87/SQL-agent-trai
 Focus on /schema/schema-index.md for existing tables and /schema/relationships/ 
 for join patterns. 
 
-CRITICAL: NEVER assume column names - only use columns documented in my schema files 
-or ASK ME to provide the actual table schema first. If a table is not documented 
-in my schema-index.md, ask for the column list before writing any SQL.
+CRITICAL RULES:
+1. NEVER assume column names - ONLY use columns I've documented or provided
+2. If table not in my schema-index.md, STOP and ask: "Can you provide the actual column names for [TableName]?"
+3. Before writing SQL, ask clarifying questions about clinical context (inpatient vs outpatient, BCMA vs clinic administration)
+4. Verify ALL columns against my documented schema before generating any SQL
+5. When uncertain about columns, ask me to run: SELECT TOP 1 * FROM [TableName] WHERE Sta3n = 589
+
+MEDICATION WORKFLOW: For any medication analysis, ALWAYS get LocalDrugSIDs first 
+using the LocalDrug table, then use those SIDs in prescription queries. See 
+/schema/relationships/medication-domain.md for the required 2-step process.
 
 If I provide table columns, use /schema/SCHEMA-ENTRY-TEMPLATE.md to create 
 structured documentation and ask approval before updating main files.
@@ -38,6 +45,11 @@ Start with /AI-AGENT-START-HERE.md for intelligent navigation.
 
 CRITICAL: NEVER assume column names - always verify against my documented schemas 
 in /schema/schema-index.md or ASK for actual table structure before generating SQL.
+If uncertain, ask me to run schema discovery: SELECT TOP 1 * FROM [TableName] WHERE Sta3n = 589
+
+MEDICATION WORKFLOW: For any medication analysis, ALWAYS get LocalDrugSIDs first 
+using the LocalDrug table, then use those SIDs in prescription queries. See 
+/schema/relationships/medication-domain.md for the required 2-step process.
 
 Use /AI-QUERY-GENERATOR.md for optimized SQL generation, /REALTIME-VALIDATOR.md 
 for live analysis, and /DOMAIN-ACCELERATORS.md for clinical analytics templates.
