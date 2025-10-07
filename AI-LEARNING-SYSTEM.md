@@ -118,3 +118,71 @@ AI agents should:
 **Purpose**: Automated learning and version control for AI-generated SQL queries  
 **User Control**: High - user approves all major updates  
 **Data Safety**: Maximum - nothing ever deleted, everything versioned
+
+---------------------------------------------------------------------------------------------------------
+
+# CDW SQL Query Best Practices
+
+## Critical Warning: Dimension Table Join Patterns
+
+### Problem Identified
+Joining dimension tables incorrectly can cause massive row multiplication. Example case: Joining `VHA.Cdwwork_DIM.HealthFactorType` on text field instead of SID caused 18x row multiplication (2,815 real rows became 50,580).
+
+### Table Types and Join Risks
+
+1. **Dimension Tables** (HIGH RISK - Always verify joins)
+   - Located in `Cdwwork_DIM.*`
+   - Examples: `HealthFactorType`, `Sta3n`, `Date`
+   - Often contain multiple versions of same value
+   - CRITICAL: Always join using SID/key fields, never on text/description fields
+
+2. **Fact Tables** (MEDIUM RISK - Standard precautions)
+   - Examples: `Cdwwork_HF.HealthFactor`, `Cdwwork_Outpat.Visit`
+   - Contain actual events/transactions
+   - Join using appropriate keys from dimension tables
+
+3. **Reference Tables** (LOW RISK - Standard precautions)
+   - Usually static lookups
+   - Generally safe for direct value joins
+
+### Code Examples
+
+```sql
+-- DANGEROUS: Will multiply results
+SELECT COUNT(*)
+FROM HE_Consults hc
+JOIN VHA.Cdwwork_DIM.HealthFactorType hft 
+    ON hc.HealthFactorType = hft.HealthFactorType  -- DON'T DO THIS!
+GROUP BY hft.HealthFactorType;
+
+-- SAFE: Correct way to join
+SELECT COUNT(*)
+FROM HE_Consults hc
+JOIN VHA.Cdwwork_DIM.HealthFactorType hft 
+    ON hc.HealthFactorTypeSID = hft.HealthFactorTypeSID  -- DO THIS!
+GROUP BY hft.HealthFactorType;
+
+Quick Validation Checks
+If result counts seem unusually high:
+
+Check for dimension table joins on text fields
+Run COUNT(*) vs COUNT(DISTINCT PatientSID) to spot multiplication
+Examine dimension tables for duplicate entries:
+SELECT HealthFactorType, COUNT(*) 
+FROM VHA.Cdwwork_DIM.HealthFactorType 
+GROUP BY HealthFactorType
+HAVING COUNT(*) > 1;
+
+Note on NOLOCK
+NOLOCK hints are about dirty reads, not row multiplication
+Row multiplication is caused by join patterns, not NOLOCK usage
+Still use NOLOCK as per CDW best practices
+Common Symptoms of Incorrect Joins
+Row counts far exceeding patient population
+Identical rows repeated exact number of times
+Totals multiplied by consistent factor (e.g., 18x)
+Best Practices Summary
+ALWAYS join dimension tables using SID/key fields
+NEVER join dimension tables on text/description fields
+Validate unusual result counts immediately
+Check dimension table cardinality when suspicious
